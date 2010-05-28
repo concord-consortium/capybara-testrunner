@@ -15,7 +15,7 @@ Capybara.app_host = "http://localhost:#{sc_server_port}"
 include Capybara
 
 # change this if you move the location you are running the script from
-rootDir = ".."
+rootDir = File.join('..', ARGV[0] || '')   # allow user to pass relative path to project we're looking for
 
 # find all of the test subfolders in the tests of the current apps
 # FIXME should change to support nested folders inside of tests
