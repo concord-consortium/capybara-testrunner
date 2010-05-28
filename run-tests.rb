@@ -14,18 +14,24 @@ Capybara.app_host = "http://localhost:#{sc_server_port}"
 
 include Capybara
 
-# change this if you move the location you are running the script from
-rootDir = File.join('..', ARGV[0] || '')   # allow user to pass relative path to project we're looking for
-
 # find all of the test subfolders in the tests of the current apps
 # FIXME should change to support nested folders inside of tests
-testFolders = Dir.glob( File.join(rootDir, "{apps,frameworks}","**", "tests", "*") )
+rootDir = '..'
+
+if ARGV[0] then 
+  testFolders = Dir.glob( File.join(rootDir, ARGV[0], "**", "tests", "*") )
+else
+  testFolders = Dir.glob( File.join(rootDir, "{apps,frameworks}","**", "tests", "*") )
+end
+
+
 excludes = [File.join("tmp","**")]
 testFolders = testFolders.reject{|folder|
     excludes.any?{|exclude| File.fnmatch?(File.join(rootDir, exclude), folder)}
 }
 
-testURLs = testFolders.collect{|folder| 
+testURLs = testFolders.collect{|folder|
+  puts "will gather tests from folder #{folder}"
   # switch to url slashes
   folder.gsub(File::SEPARATOR, '/')
   paths = Regexp.new('.*(frameworks|apps)/([^/]*)/tests/(.*)').match(folder)
@@ -35,7 +41,9 @@ testURLs = testFolders.collect{|folder|
 }
 
 testURLs.each{|url|
+  print "visiting #{url[:url]}..."
   visit(url[:url])
+  print "visited\n"
   results = evaluate_script('CoreTest.plan.results')
   File.open(url[:results_file], 'w'){|file|
     TransformResults.transform(results, file)
@@ -43,8 +51,3 @@ testURLs.each{|url|
   #uncomment this to save results for quicker testing of the transform
   #puts results.to_yaml
 }
-
-
-
-
-
