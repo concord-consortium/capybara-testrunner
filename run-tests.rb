@@ -1,6 +1,7 @@
 $:.unshift File.join(File.dirname(__FILE__), 'lib')
 
 require 'trollop'  # For processing command-line options
+require 'fileutils'
 
 require 'capybara'
 require 'capybara/dsl'
@@ -20,7 +21,15 @@ require 'yaml'
   opt :root_dir, "Root directory", :type => :string, :default => ".."
   opt :tests_dir, "Tests directory", :type => :string, :default => "{apps,frameworks}"
   opt :exclude_dir, "Exclude test directory", :type => :string, :multi => true
+  
+  opt :results_dir, "Results directory", :type => :string, :default => "."
+  opt :junit, "Output JUnit XML", :default => true
+  opt :snapshot, 'Save a "snapshot" of the test page html', :default => true
+  
+  opt :quiet, 'Quiet mode. Do not print messages while running', :default => false
 end
+
+FileUtils.mkdir_p @options[:results_dir]
 
 Capybara.current_driver = @options[:driver].to_sym
 Capybara.app_host = "http://#{@options[:sc_server_host]}:#{@options[:sc_server_port]}"
@@ -37,23 +46,38 @@ testFolders = testFolders.reject{|folder|
 }
 
 testURLs = testFolders.collect{|folder|
-  puts "will gather tests from folder #{folder}"
+  puts "will gather tests from folder #{folder}" unless @options[:quiet]
   # switch to url slashes
   folder.gsub(File::SEPARATOR, '/')
   paths = Regexp.new('.*(frameworks|apps)/([^/]*)/tests/(.*)').match(folder)
   {:url => "/#{paths[2]}/en/current/tests/#{paths[3]}.html",
-   :results_file => "#{paths[2]}-#{paths[3].gsub('/',"-")}-junit.xml"
+   :results_file => File.join(@options[:results_dir], "#{paths[2]}-#{paths[3].gsub('/',"-")}-junit.xml"),
+   :results_html_file => File.join(@options[:results_dir], "#{paths[2]}-#{paths[3].gsub('/',"-")}-page.html")
   }
 }
 
-testURLs.each{|url|
-  print "visiting #{url[:url]}..."
-  visit(url[:url])
-  print "visited\n"
+def save_results_xml(url)
   results = evaluate_script('CoreTest.plan.results')
   File.open(url[:results_file], 'w'){|file|
     TransformResults.transform(results, file)
   }
   #uncomment this to save results for quicker testing of the transform
   #puts results.to_yaml
+end
+
+def save_page_html(url)
+  # FIXME How do we get the result html without re-running the tests?
+  html = evaluate_script('')
+  File.open(url[:results_html_file], 'w'){|file|
+    file.write(html)
+    file.flush
+  }
+end
+
+testURLs.each{|url|
+  print "visiting #{url[:url]}..." unless @options[:quiet]
+  visit(url[:url])
+  print "visited\n" unless @options[:quiet]
+  save_results_xml(url) if @options[:junit]
+  save_page_html(url) if @options[:snapshot]
 }
