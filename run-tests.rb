@@ -22,9 +22,9 @@ require 'yaml'
   opt :tests_dir, "Tests directory", :type => :string, :default => "{apps,frameworks}"
   opt :exclude_dir, "Exclude test directory", :type => :string, :multi => true
   
-  opt :results_dir, "Results directory", :type => :string, :default => "."
+  opt :results_dir, "Results directory", :type => :string, :default => "results"
   opt :junit, "Output JUnit XML", :default => true
-  opt :snapshot, 'Save a "snapshot" of the test page html', :default => true
+  opt :snapshot, 'Save a "snapshot" of the test page html', :default => false
   
   opt :quiet, 'Quiet mode. Do not print messages while running', :default => false
 end
