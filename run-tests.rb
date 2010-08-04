@@ -45,14 +45,16 @@ testFolders = testFolders.reject{|folder|
     excludes.any?{|exclude| File.fnmatch?(File.join(@options[:root_dir], exclude), folder)}
 }
 
+TEST_REGEXP = Regexp.new('.*?(frameworks|apps)/(.*)/tests/(.*)')
 testURLs = testFolders.collect{|folder|
   puts "will gather tests from folder #{folder}" unless @options[:quiet]
   # switch to url slashes
-  folder.gsub(File::SEPARATOR, '/')
-  paths = Regexp.new('.*(frameworks|apps)/([^/]*)/tests/(.*)').match(folder)
-  {:url => "/#{paths[2]}/en/current/tests/#{paths[3]}.html",
-   :results_file => File.join(@options[:results_dir], "#{paths[2]}-#{paths[3].gsub('/',"-")}-junit.xml"),
-   :results_html_file => File.join(@options[:results_dir], "#{paths[2]}-#{paths[3].gsub('/',"-")}-page.html")
+  folder.gsub!(File::SEPARATOR, '/')
+  paths = TEST_REGEXP.match(folder)
+  url_base = paths[2].gsub('frameworks/','')
+  {:url => "/#{url_base}/en/current/tests/#{paths[3]}.html",
+   :results_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-junit.xml".gsub('/',"-")),
+   :results_html_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-page.html".gsub('/',"-"))
   }
 }
 
