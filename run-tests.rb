@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 $:.unshift File.join(File.dirname(__FILE__), 'lib')
 
 require 'trollop'  # For processing command-line options
@@ -11,22 +13,22 @@ require 'yaml'
 
 # Process command-line options
 @options = Trollop::options do
-  opt :driver, "Capybara driver", :type => String, :default => "selenium"
+  opt :driver, "Capybara driver", :short => 'd', :type => String, :default => "selenium"
   
   # look for an environment variable so the port can be changed depending on 
   # the ci node that is running it
-  opt :sc_server_port, "SC Server Port", :type => :int, :default => (ENV['SC_SERVER_PORT'] || 4020)
-  opt :sc_server_host, "SC Server Host", :type => :string, :default => "localhost"
+  opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'] || 4020)
+  opt :sc_server_host, "SC Server Host", :short => 'h', :type => :string, :default => "localhost"
   
-  opt :root_dir, "Root directory", :type => :string, :default => ".."
-  opt :tests_dir, "Tests directory", :type => :string, :default => "{apps,frameworks}"
-  opt :exclude_dir, "Exclude test directory", :type => :string, :multi => true
+  opt :root_dir, "Root directory", :short => 'r', :type => :string, :default => ".."
+  opt :tests_dir, "Tests directory", :short => 't', :type => :string, :default => "{apps,frameworks}"
+  opt :exclude_dir, "Exclude test directory", :short => 'x', :type => :string, :multi => true
   
-  opt :results_dir, "Results directory", :type => :string, :default => "results"
-  opt :junit, "Output JUnit XML", :default => true
-  opt :snapshot, 'Save a "snapshot" of the test page html', :default => false
+  opt :results_dir, "Results directory", :short => 'o', :type => :string, :default => "results"
+  opt :junit, "Output JUnit XML", :short => 'j', :default => true
+  opt :snapshot, 'Save a "snapshot" of the test page html', :short => 's', :default => false
   
-  opt :quiet, 'Quiet mode. Do not print messages while running', :default => false
+  opt :quiet, 'Quiet mode. Do not print messages while running', :short => 'q', :default => false
 end
 
 FileUtils.mkdir_p @options[:results_dir]
