@@ -18,7 +18,7 @@ require 'yaml'
   # look for an environment variable so the port can be changed depending on 
   # the ci node that is running it
   opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'] || 4020)
-  opt :sc_server_host, "SC Server Host", :short => 'h', :type => :string, :default => "localhost"
+  opt :sc_server_host, "SC Server Host", :short => 's', :type => :string, :default => "localhost"
   
   opt :root_dir, "Root directory", :short => 'r', :type => :string, :default => ".."
   opt :tests_dir, "Tests directory", :short => 't', :type => :string, :default => "{apps,frameworks}"
@@ -26,10 +26,13 @@ require 'yaml'
   
   opt :results_dir, "Results directory", :short => 'o', :type => :string, :default => "results"
   opt :junit, "Output JUnit XML", :short => 'j', :default => true
-  opt :snapshot, 'Save a "snapshot" of the test page html', :short => 's', :default => false
+  opt :image, 'Save a png snapshot of the test page', :short => 'i', :default => false
+  opt :html, 'Save an html snapshot of the test page', :short => 'h', :default => false
   
   opt :quiet, 'Quiet mode. Do not print messages while running', :short => 'q', :default => false
 end
+
+Trollop::die :image, "can only be enabled if using the selenium driver (you're using: #{@options[:driver]})" if @options[:image] && @options[:driver] != "selenium"
 
 FileUtils.mkdir_p @options[:results_dir]
 
@@ -56,7 +59,8 @@ testURLs = testFolders.collect{|folder|
   url_base = paths[2].gsub('frameworks/','')
   {:url => "/#{url_base}/en/current/tests/#{paths[3]}.html",
    :results_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-junit.xml".gsub('/',"-")),
-   :results_html_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-page.html".gsub('/',"-"))
+   :results_html_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-page.html".gsub('/',"-")),
+   :results_png_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-page.png".gsub('/',"-"))
   }
 }
 
@@ -69,10 +73,15 @@ def save_results_xml(url)
   #puts results.to_yaml
 end
 
-def save_page_html(url)
+def save_page_png(file_path)
+  Capybara.current_session.driver.browser.save_screenshot(file_path)
+end
+
+def save_page_html(file_path)
   # FIXME How do we get the result html without re-running the tests?
-  html = evaluate_script('')
-  File.open(url[:results_html_file], 'w'){|file|
+  # one method: get the current DOM and any script elements. this is possibly too aggressive
+  html = body.gsub(/<script.*?<\/script>/m, '')
+  File.open(file_path, 'w'){|file|
     file.write(html)
     file.flush
   }
@@ -83,5 +92,6 @@ testURLs.each{|url|
   visit(url[:url])
   print "visited\n" unless @options[:quiet]
   save_results_xml(url) if @options[:junit]
-  save_page_html(url) if @options[:snapshot]
+  save_page_png(url[:results_png_file]) if @options[:image]
+  save_page_html(url[:results_html_file]) if @options[:html]
 }
