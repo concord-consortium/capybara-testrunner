@@ -17,7 +17,7 @@ require 'yaml'
   
   # look for an environment variable so the port can be changed depending on 
   # the ci node that is running it
-  opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'] || 4020)
+  opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'].to_i || 4020)
   opt :sc_server_host, "SC Server Host", :short => 's', :type => :string, :default => "localhost"
   
   opt :root_dir, "Root directory", :short => 'r', :type => :string, :default => ".."
