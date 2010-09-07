@@ -21,8 +21,8 @@ require 'fileutils'
 port = ENV[:SC_SERVER_PORT] ? ENV[:SC_SERVER_PORT].to_i : 4020
 sc_server_cmd = ['sc-server',
        '--daemonize',   # run in the background
-       "--pid=#{File.join(Dir.pwd, 'server.pid')}", # save the pid to the server.pid file
-       "--logfile=#{File.join(Dir.pwd, 'server.log')}", # save the log messages to  server.log
+       "--pid='#{File.join(Dir.pwd, 'server.pid')}'", # save the pid to the server.pid file
+       "--logfile='#{File.join(Dir.pwd, 'server.log')}'", # save the log messages to  server.log
        "--port=#{port}",
        "--host=0.0.0.0"]  # this is necessary on our ci server because otherwise it only binds to ipv6 address
 sc_server = DaemonController.new(
@@ -38,7 +38,7 @@ sc_server = DaemonController.new(
 system("git clean -f #{@options[:results_dir]}")
 
 sc_server.start
-run_tests_cmd = ["ruby -rubygems #{File.join(File.dirname(__FILE__), 'run-tests.rb')}",
+run_tests_cmd = ["ruby -rubygems '#{File.join(File.dirname(__FILE__), 'run-tests.rb')}'",
                  "-p #{port}",
                  "-r .", # set the root for looking for the tests to be this directory
                  "-i -h",
