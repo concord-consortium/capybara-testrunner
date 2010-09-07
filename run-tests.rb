@@ -57,10 +57,11 @@ testURLs = testFolders.collect{|folder|
   folder.gsub!(File::SEPARATOR, '/')
   paths = TEST_REGEXP.match(folder)
   url_base = paths[2].gsub('frameworks/','')
-  {:url => "/#{url_base}/en/current/tests/#{paths[3]}.html",
-   :results_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-junit.xml".gsub('/',"-")),
-   :results_html_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-page.html".gsub('/',"-")),
-   :results_png_file => File.join(@options[:results_dir], "#{url_base}-#{paths[3]}-page.png".gsub('/',"-"))
+  file_base = paths[3].gsub(/\.js$/, '') # remove .js if the entry is a js file instead of directory
+  {:url => "/#{url_base}/en/current/tests/#{file_base}.html",
+   :results_file => File.join(@options[:results_dir], "#{url_base}-#{file_base}-junit.xml".gsub('/',"-")),
+   :results_html_file => File.join(@options[:results_dir], "#{url_base}-#{file_base}-page.html".gsub('/',"-")),
+   :results_png_file => File.join(@options[:results_dir], "#{url_base}-#{file_base}-page.png".gsub('/',"-"))
   }
 }
 
