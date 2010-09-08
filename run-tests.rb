@@ -94,7 +94,7 @@ def save_page_html(file_path)
 end
 
 testURLs.each{|url|
-  print "visiting #{url[:url]}..." unless @options[:quiet]
+  print "visiting #{Capybara.app_host}#{url[:url]}..." unless @options[:quiet]
   visit(url[:url])
   print "visited\n" unless @options[:quiet]
   save_results_xml(url) if @options[:junit]
