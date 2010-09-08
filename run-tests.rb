@@ -35,7 +35,7 @@ end
 Trollop::die :image, "can only be enabled if using the selenium driver (you're using: #{@options[:driver]})" if @options[:image] && @options[:driver] != "selenium"
 
 # check if DISPLAY environment variable is set on linux
-if RUBY_PLATFROM =~ /linux/ and ENV['DISPLAY'].nil?
+if RUBY_PLATFORM =~ /linux/ and ENV['DISPLAY'].nil?
   Trollop::die "When running on linux the DISPLAY variable needs to be set to a valid X display"
 end
 
