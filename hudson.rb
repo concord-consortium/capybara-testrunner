@@ -18,7 +18,7 @@ require 'daemon_controller'
 require 'socket'
 require 'fileutils'
 
-port = ENV[:SC_SERVER_PORT] ? ENV[:SC_SERVER_PORT].to_i : 4020
+port = ENV['SC_SERVER_PORT'] ? ENV['SC_SERVER_PORT'].to_i : 4020
 sc_server_cmd = ['sc-server',
        '--daemonize',   # run in the background
        "--pid='#{File.join(Dir.pwd, 'server.pid')}'", # save the pid to the server.pid file
