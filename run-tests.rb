@@ -99,7 +99,7 @@ testURLs.each{|url|
   print "waiting for tests to finish"
   start = Time.now
   results = nil
-  while Time.now < (start + 60)
+  while Time.now < (start + 300)
     results = evaluate_script('CoreTest.plan.results')
     print "."
     break unless results['finish'].nil?
