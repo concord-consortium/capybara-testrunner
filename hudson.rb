@@ -12,6 +12,7 @@ require 'trollop'  # For processing command-line options
 @options = Trollop::options do
   opt :tests_dir, "Tests directory", :short => 't', :type => :string, :default => "{apps,frameworks}"
   opt :results_dir, "Results directory", :short => 'o', :type => :string, :default => "results"
+  opt :sc_server_path, "Path to sc-server command", :short => 'p', :type => :string, :default => "sc-server"
 end
 
 require 'daemon_controller'
@@ -19,7 +20,7 @@ require 'socket'
 require 'fileutils'
 
 port = ENV['SC_SERVER_PORT'] ? ENV['SC_SERVER_PORT'].to_i : 4020
-sc_server_cmd = ['sc-server',
+sc_server_cmd = [@options[:sc_server_path],
        '--daemonize',   # run in the background
        "--pid='#{File.join(Dir.pwd, 'server.pid')}'", # save the pid to the server.pid file
        "--logfile='#{File.join(Dir.pwd, 'server.log')}'", # save the log messages to  server.log
@@ -33,6 +34,8 @@ sc_server = DaemonController.new(
    :log_file      => 'server.log',
    :start_timeout => 25
 )
+
+puts sc_server_cmd.join(' ')
 
 # remove old test results rm reports/*.xml
 system("git clean -f #{@options[:results_dir]}")
