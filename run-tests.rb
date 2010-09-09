@@ -70,8 +70,7 @@ testURLs = testFolders.collect{|folder|
   }
 }
 
-def save_results_xml(url)
-  results = evaluate_script('CoreTest.plan.results')
+def save_results_xml(url, results)
   File.open(url[:results_file], 'w'){|file|
     TransformResults.transform(results, file)
   }
@@ -97,7 +96,17 @@ testURLs.each{|url|
   print "visiting #{Capybara.app_host}#{url[:url]}..." unless @options[:quiet]
   visit(url[:url])
   print "visited\n" unless @options[:quiet]
-  save_results_xml(url) if @options[:junit]
+  print "waiting for tests to finish"
+  start = Time.now
+  results = nil
+  while Time.now < (start + 60)
+    results = evaluate_script('CoreTest.plan.results')
+    print "."
+    break unless results['finish'].nil?
+    sleep 0.2
+  end
+  puts "(#{Time.now - start} seconds)"
+  save_results_xml(url, results) if @options[:junit]
   save_page_png(url[:results_png_file]) if @options[:image]
   save_page_html(url[:results_html_file]) if @options[:html]
 }
