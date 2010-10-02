@@ -25,7 +25,7 @@ module TransformResults
   
     def message
       messages = self.assertions.collect{|assertion| 
-        assertion['result'].upcase + ': ' + assertion['message']
+        assertion['result'].to_s.upcase + ': ' + assertion['message'].to_s
       }
       messages.join('\n')
     end
