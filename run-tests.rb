@@ -5,19 +5,21 @@ $:.unshift File.join(File.dirname(__FILE__), 'lib')
 require 'trollop'  # For processing command-line options
 require 'fileutils'
 
-require 'capybara'
-require 'capybara/dsl'
+
 require 'transform-results'
 # this is only needed to save a fixture for testing the transform code
 require 'yaml'
 
 # Process command-line options
 @options = Trollop::options do
+  opt :runner, "Browser runner", :short => 'b', :type => String, :default => "capybara"
+
+  # capybara specific
   opt :driver, "Capybara driver", :short => 'd', :type => String, :default => "selenium"
   
   # look for an environment variable so the port can be changed depending on 
   # the ci node that is running it
-  opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'].to_i || 4020)
+  opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'] || '4020').to_i
   opt :sc_server_host, "SC Server Host", :short => 's', :type => :string, :default => "localhost"
   
   opt :root_dir, "Root directory", :short => 'r', :type => :string, :default => ".."
@@ -41,10 +43,14 @@ end
 
 FileUtils.mkdir_p @options[:results_dir]
 
-Capybara.current_driver = @options[:driver].to_sym
-Capybara.app_host = "http://#{@options[:sc_server_host]}:#{@options[:sc_server_port]}"
-
-include Capybara
+@browser = case @options[:runner]
+when "capybara" then 
+  require 'capybara-runner'
+  CapybaraRunner.new(@options[:driver].to_sym, "http://#{@options[:sc_server_host]}:#{@options[:sc_server_port]}")
+when "selenium-rc" then
+  require 'selenium-rc-runner'
+  SeleniumRCRunner.new()
+end
 
 # find all of the test subfolders in the tests of the current apps
 # FIXME should change to support nested folders inside of tests
@@ -79,13 +85,13 @@ def save_results_xml(url, results)
 end
 
 def save_page_png(file_path)
-  Capybara.current_session.driver.browser.save_screenshot(file_path)
+  @browser.save_screenshot(file_path)
 end
 
 def save_page_html(file_path)
   # FIXME How do we get the result html without re-running the tests?
   # one method: get the current DOM and any script elements. this is possibly too aggressive
-  html = body.gsub(/<script.*?<\/script>/m, '')
+  html = @browser.body.gsub(/<script.*?<\/script>/m, '')
   File.open(file_path, 'w'){|file|
     file.write(html)
     file.flush
@@ -93,14 +99,14 @@ def save_page_html(file_path)
 end
 
 testURLs.each{|url|
-  print "visiting #{Capybara.app_host}#{url[:url]}..." unless @options[:quiet]
-  visit(url[:url])
+  print "visiting #{url[:url]}..." unless @options[:quiet]
+  @browser.open(url[:url])
   print "visited\n" unless @options[:quiet]
   print "waiting for tests to finish"
   start = Time.now
   results = nil
   while Time.now < (start + 300)
-    results = evaluate_script('CoreTest.plan.results')
+    results = @browser.js_eval('CoreTest.plan.results')
     print "."
     break unless results['finish'].nil?
     sleep 0.2
@@ -110,3 +116,5 @@ testURLs.each{|url|
   save_page_png(url[:results_png_file]) if @options[:image]
   save_page_html(url[:results_html_file]) if @options[:html]
 }
+
+@browser.close
