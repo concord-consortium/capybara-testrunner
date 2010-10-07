@@ -4,10 +4,9 @@ $:.unshift File.join(File.dirname(__FILE__), 'lib')
 
 require 'trollop'  # For processing command-line options
 require 'fileutils'
-
+require 'json'
 
 require 'transform-results'
-# this is only needed to save a fixture for testing the transform code
 require 'yaml'
 
 # Process command-line options
@@ -43,13 +42,19 @@ end
 
 FileUtils.mkdir_p @options[:results_dir]
 
+@app_host = "http://#{@options[:sc_server_host]}:#{@options[:sc_server_port]}"
 @browser = case @options[:runner]
 when "capybara" then 
   require 'capybara-runner'
-  CapybaraRunner.new(@options[:driver].to_sym, "http://#{@options[:sc_server_host]}:#{@options[:sc_server_port]}")
+  CapybaraRunner.new(@options[:driver].to_sym, @app_host)
 when "selenium-rc" then
   require 'selenium-rc-runner'
-  SeleniumRCRunner.new()
+  # SeleniumRCRunner.new(@app_host, 'localhost', '*safari')
+  # Inorder for this to work you need to startup up a saucelabs tunnel first
+  # one way is to download sauce-connect and run it something like this:
+  #   sauce_connect -u username -k xxx-xxx-xxx-xxx -s localhost -p 4020 -d site.test
+  SeleniumRCRunner.new(@app_host, 'saucelabs.com', 
+                  YAML.load_file(File.join(File.dirname(__FILE__), 'saucelabs.yml')).to_json)
 end
 
 # find all of the test subfolders in the tests of the current apps

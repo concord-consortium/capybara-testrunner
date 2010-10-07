@@ -1,0 +1,27 @@
+# put a saucelabs username here
+username: username
+
+# put a valid access-key in here
+access-key: xxx-xxx-xxx-xxx
+
+# you can use whatever job name you want here
+job-name: capybara-testrunner
+
+# saucelabs mainly uses windows 2003 but it does have linux support too
+os: Windows 2003
+
+browser: firefox
+browser-version: 3.6.
+
+# below are some alternative browser configurations
+
+# browser: googlechrome
+# browser-version: ''
+
+# browser: opera
+# browser-version: '10.'
+
+# WARNING: capybara-testrunner appears not to work correctly on IE and might leave your saucelabs test running
+# browser: iexplore
+# browser-version: '8.'
+

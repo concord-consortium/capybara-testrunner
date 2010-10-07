@@ -2,29 +2,13 @@ require "selenium/client"
 require "json"
 
 class SeleniumRCRunner
-  def initialize()
+  def initialize(app_host, selenium_host, browser_string)
     @browser = Selenium::Client::Driver.new(
-             :host => 'localhost',
+             :host => selenium_host,
              :port => 4444, 
-             :browser => '*safari',
-             :url => "http://localhost:4020", 
+             :browser => browser_string,
+             :url => app_host, 
              :timeout_in_seconds => 90)
-
-             # browser = Selenium::Client::Driver.new(
-             #         :host => 'saucelabs.com',
-             #         :port => 4444, 
-             #         :browser => '{"username": "scytacki",' +
-             #           # put a valid access-key in here:
-             #                       '"access-key": "",' +
-             #                       '"os": "Windows 2003",' +
-             #                       '"browser": "iexplore",' +
-             #                       '"browser-version": "8.",' +
-             #                       # '"browser": "opera",' +
-             #                       # '"browser-version": "10.",' +
-             #                       '"job-name": "TestSwarm test"}',
-             #         :url => "http://testswarm.dev.concord.org", 
-             #         :timeout_in_seconds => 90)
-
 
     @browser.start_new_browser_session    
   end
