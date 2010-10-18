@@ -13,29 +13,17 @@ require 'trollop'  # For processing command-line options
   opt :tests_dir, "Tests directory", :short => 't', :type => :string, :default => "{apps,frameworks}"
   opt :results_dir, "Results directory", :short => 'o', :type => :string, :default => "results"
   opt :sc_server_path, "Path to sc-server command", :short => 'p', :type => :string, :default => "sc-server"
+  opt :sc_server_host, "SC Server Host", :short => 's', :type => :string, :default => "localhost"
+  opt :runner, "Browser runner", :short => 'b', :type => String, :default => "capybara"
 end
 
-require 'daemon_controller'
-require 'socket'
-require 'fileutils'
+# NOTE the sc_server_host is not used when starting up the sc-server it is only used by the browser runner
+# to access the tests.  This way cloud based testing can be used to access the local sc-server
+
+require 'sc-server-controller'
 
 port = ENV['SC_SERVER_PORT'] ? ENV['SC_SERVER_PORT'].to_i : 4020
-sc_server_cmd = [@options[:sc_server_path],
-       '--daemonize',   # run in the background
-       "--pid='#{File.join(Dir.pwd, 'server.pid')}'", # save the pid to the server.pid file
-       "--logfile='#{File.join(Dir.pwd, 'server.log')}'", # save the log messages to  server.log
-       "--port=#{port}",
-       "--host=0.0.0.0"]  # this is necessary on our ci server because otherwise it only binds to ipv6 address
-sc_server = DaemonController.new(
-   :identifier    => 'SproutCore Server',
-   :start_command => sc_server_cmd.join(' '),
-   :ping_command  => lambda { TCPSocket.new('localhost', port) },
-   :pid_file      => 'server.pid',
-   :log_file      => 'server.log',
-   :start_timeout => 25
-)
-
-puts sc_server_cmd.join(' ')
+sc_server = SCServerController.new(@options[:sc_server_path], port)
 
 # remove old test results rm reports/*.xml
 system("git clean -f #{@options[:results_dir]}")
@@ -46,7 +34,9 @@ run_tests_cmd = ["ruby -rubygems '#{File.join(File.dirname(__FILE__), 'run-tests
                  "-r .", # set the root for looking for the tests to be this directory
                  "-i -h",
                  "-t #{@options[:tests_dir]}",
-                 "-o #{@options[:results_dir]}"]
+                 "-o #{@options[:results_dir]}",
+                 "-s #{@options[:sc_server_host]}",
+                 "-b #{@options[:runner]}"]
 system(run_tests_cmd.join(' '))
 run_test_result = $?
 sc_server.stop
