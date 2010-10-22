@@ -16,6 +16,9 @@ require 'yaml'
   # capybara specific
   opt :driver, "Capybara driver", :short => 'd', :type => String, :default => "selenium"
   
+  # sauce labs specific
+  opt :tunnel, "Start Sauce Connect Tunnel", :short => 'c', :default => false
+  
   # look for an environment variable so the port can be changed depending on 
   # the ci node that is running it
   opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'] || '4020').to_i
@@ -49,35 +52,10 @@ when "capybara" then
   CapybaraRunner.new(@options[:driver].to_sym, @app_host)
 when "selenium-rc" then
   require 'selenium-rc-runner'
-  require 'cgi'
-  # SeleniumRCRunner.new(@app_host, 'localhost', '*safari')
-  # Inorder for this to work you need to startup up a saucelabs tunnel first
-  # one way is to download sauce-connect and run it something like this:
-  #   sauce_connect -u username -k xxx-xxx-xxx-xxx -s localhost -p 4020 -d site.test
-  
-  # check if the saucelabs.yml file exists
-  saucelabs_config = File.join(File.dirname(__FILE__), 'saucelabs.yml')
-  if File.exists? saucelabs_config
-    sauce_browser_opts = YAML.load_file()
-  elsif !ENV['SELENIUM_DRIVER'].nil? and !ENV['SAUCELABS_USER'].nil? and !ENV['SAUCELABS_KEY'].nil? 
-    # normally URI.parse(url).query could be used here but it appears not to handle non standard URI schemes
-    selenium_driver_opts = CGI.parse(ENV['SELENIUM_DRIVER'].split('?')[1])
-    # this will return something like {"os"=>["Linux"], "browser"=>["firefox"], "browser-version"=>["3."]}
-    # so we need to make the values single instead of arrays
-    sauce_browser_opts = {}
-    selenium_driver_opts.each{|key,value| sauce_browser_opts[key]=value[0]}
-
-    # add in the user and API key
-    sauce_browser_opts['username'] = ENV['SAUCELABS_USER']
-    sauce_browser_opts['access-key'] = ENV['SAUCELABS_KEY']
-  else
-    Trollop::die "When running with selenium-rc either a saucelabs.yml file is needed or the appropriate environment variables need to be set"
-  end
-  
-  # otherwise load in the environment variable xxxx
-  # parse it out into a hash, and addin the username and api key from environment variables
-  
-  SeleniumRCRunner.new(@app_host, 'saucelabs.com', sauce_browser_opts.to_json)
+  SeleniumRCRunner.new(@app_host, 'localhost', '*safari')
+when "sauce" then
+  require 'sauce-runner'  
+  SauceRunner.new(@app_host, File.dirname(__FILE__), @options[:tunnel])
 end
 
 # find all of the test subfolders in the tests of the current apps
