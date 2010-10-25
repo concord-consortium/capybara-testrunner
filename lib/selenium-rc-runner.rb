@@ -8,9 +8,11 @@ class SeleniumRCRunner
              :port => 4444, 
              :browser => browser_string,
              :url => app_host, 
-             :timeout_in_seconds => 90)
+             :timeout_in_seconds => 300)
 
+    puts "#{Time.now.to_s} - Starting selenium browser session..."
     @browser.start_new_browser_session    
+    puts "#{Time.now.to_s} - Browser session started"
   end
   
   def open(url)
