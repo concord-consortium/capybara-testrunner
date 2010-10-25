@@ -22,8 +22,9 @@ class SeleniumRCRunner
   end
   
   def js_eval(javascript)
-    # it seems this window.JSON might fix the problem with IE8 complaining about the JSON object
-    results_str = @browser.js_eval("window.JSON.stringify(window.#{javascript})")
+    # it seems sometimes the window.JSON object doesn't exist, hopefully this is a timing issue and
+    # it will eventually exist
+    results_str = @browser.js_eval("if(window.JSON) window.JSON.stringify(window.#{javascript})")
     JSON.parse(results_str)
   end
   
