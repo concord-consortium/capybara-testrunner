@@ -13,6 +13,8 @@ class SeleniumRCRunner
     puts "#{Time.now.to_s} - Starting selenium browser session..."
     @browser.start_new_browser_session    
     puts "#{Time.now.to_s} - Browser session started"
+    puts @browser.js_eval("navigator.userAgent")
+    
   end
   
   def open(url)
