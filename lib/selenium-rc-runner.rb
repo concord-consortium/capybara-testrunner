@@ -20,7 +20,7 @@ class SeleniumRCRunner
   end
   
   def js_eval(javascript)
-    results_str = @browser.js_eval("SC.json.encode(window.#{javascript})")
+    results_str = @browser.js_eval("JSON.stringify(window.#{javascript})")
     JSON.parse(results_str)
   end
   
