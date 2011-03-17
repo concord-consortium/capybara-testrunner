@@ -1,11 +1,15 @@
-# add the lib folder to the search path ($:)
-$:.unshift File.join(File.dirname(__FILE__), 'lib')
+#!/usr/bin/env ruby
+
+# Example of a configurable script for use on a CI system such as Hudson. A best practice is to make sure this runs on
+# developer machines as well.
+
+require "trollop"                   # install this gem   
+require "bundler/setup"             # if using sc-testdriver as a "git gem"
+require "sc-server-controller"      # sc-testdriver provides sc-server-controller
 
 puts "********************************************"
 puts "    Running SproutCore unit tests"
 puts "********************************************"
-
-require 'trollop'  # For processing command-line options
 
 # to keep this simple only include the command options that are being used
 # Process command-line options
@@ -19,18 +23,17 @@ require 'trollop'  # For processing command-line options
 end
 
 # NOTE the sc_server_host is not used when starting up the sc-server it is only used by the browser runner
-# to access the tests.  This way cloud based testing can be used to access the local sc-server
-
-require 'sc-server-controller'
+# to access the tests.  This way cloud based testing can be used to access the local sc-serve
 
 port = ENV['SC_SERVER_PORT'] ? ENV['SC_SERVER_PORT'].to_i : 4020
+
 sc_server = SCServerController.new(@options[:sc_server_path], port)
 
 # remove old test results rm reports/*.xml
 system("git clean -f #{@options[:results_dir]}")
 
 sc_server.start
-run_tests_cmd = ["ruby -rubygems '#{File.join(File.dirname(__FILE__), 'bin/run-tests')}'",
+run_tests_cmd = ["sc-testdriver",
                  "-p #{port}",
                  "-r .", # set the root for looking for the tests to be this directory
                  "#{'-i' if @options[:image]}",
