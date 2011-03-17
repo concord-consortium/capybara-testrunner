@@ -30,7 +30,7 @@ sc_server = SCServerController.new(@options[:sc_server_path], port)
 system("git clean -f #{@options[:results_dir]}")
 
 sc_server.start
-run_tests_cmd = ["ruby -rubygems '#{File.join(File.dirname(__FILE__), 'run-tests.rb')}'",
+run_tests_cmd = ["ruby -rubygems '#{File.join(File.dirname(__FILE__), 'bin/run-tests')}'",
                  "-p #{port}",
                  "-r .", # set the root for looking for the tests to be this directory
                  "#{'-i' if @options[:image]}",
