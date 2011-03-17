@@ -15,7 +15,7 @@ spec = Gem::Specification.new do |spec|
   spec.files          = `git ls-files`.split("\n")
   spec.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
 
-  spec.executables    = ["run-tests"]
+  spec.executables    = ["sc-testdriver"]
   
   # the defaults
   spec.bindir         = ["bin"]

@@ -64,7 +64,7 @@ testFolders = Dir.glob( File.join(@options[:root_dir], @options[:tests_dir], "**
 
 excludes = [File.join("tmp","**")] + @options[:exclude_dir]
 testFolders = testFolders.reject{|folder|
-    excludes.any?{|exclude| File.fnmatch?(File.join(@options[:root_dir], exclude), folder)}
+  excludes.any?{|exclude| File.fnmatch?(File.join(@options[:root_dir], exclude), folder)}
 }
 
 TEST_REGEXP = Regexp.new('.*?(frameworks|apps)/(.*)/tests/(.*)')
