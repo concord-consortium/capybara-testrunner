@@ -1,6 +1,6 @@
 spec = Gem::Specification.new do |spec|
   spec.name           = "sc-testdriver"
-  spec.version        = "0.1.0"
+  spec.version        = "0.1.1"
   spec.platform       = Gem::Platform::RUBY
   spec.authors        = ["Scott Cytacki"]
   spec.email          = ["scytacki@concord.org"]
