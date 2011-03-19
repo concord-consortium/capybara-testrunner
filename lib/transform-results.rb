@@ -14,6 +14,7 @@ module TransformResults
     end
   end
 
+
   class TestTest
     attr_accessor :name, :assertions, :failed
   
@@ -31,12 +32,13 @@ module TransformResults
     end
   end
 
+
   def self.parseResults(results)
     modules = []
     currentModule = nil
     currentTest = nil
 
-    results['assertions'].each{|assertion| 
+    results['assertions'].each{|assertion|
       if currentModule.nil? or currentModule.name != assertion['module']
         currentModule = TestModule.new(assertion['module'])    
         modules.push(currentModule)
@@ -48,7 +50,7 @@ module TransformResults
       end
   
       currentModule.failures += 1 if assertion['result'] == ('failed')
-      currentModule.errors += 1 if assertion['result'] == ('errors')
+      currentModule.errors   += 1 if assertion['result'] == ('errors')
       if assertion['result'] != 'passed'
         currentTest.failed = true
       end
@@ -58,32 +60,34 @@ module TransformResults
     modules
   end
 
+
   def self.transform(results, out)
     modules = parseResults(results)
  
     doc = Document.new();
     testsuites = doc.add_element('testsuites')
-      # testsuite = testsuites.add_element('testsuite', {
-      #    'tests' => results['tests'],
-      #    'errors' => results['errors'], 
-      #    'failures' => results['failed'],
-      #    'timestamp' => results['finish'],
-      #    'time' => (results['runtime']),
-      #    })
 
     modules.each{ |currModule|
-      testsuite = testsuites.add_element('testsuite', 
-        {'name' => currModule.name.split(' ')[1], 'tests' => currModule.tests.length,
-          'failures' => currModule.failures, 'errors' => currModule.errors})
+      testsuite = testsuites.add_element('testsuite', {
+        'name'     => currModule.name.split(' ')[1], 
+        'tests'    => currModule.tests.length,
+        'failures' => currModule.failures, 
+        'errors'   => currModule.errors
+      })
+      
       fileName = currModule.name.split(' ')[0]
       className = fileName.sub(/\.js/, '').gsub(/\//, '.')
+      
       currModule.tests.each{ |currTest|
-        testcase = testsuite.add_element('testcase',
-        {'name' => currTest.name, 'classname' => className})
+        testcase = testsuite.add_element('testcase', {
+          'name'      => currTest.name, 
+          'classname' => className
+        })
+        
         if currTest.failed      
-          testcase.add_element('failure', {'message' => currTest.message})
+          testcase.add_element('failure', { 'message' => currTests.message })
         elsif
-          testcase.add_element('pass', {'message' => currTest.message})
+          testcase.add_element('pass',    { 'message' => currTests.message })
         end
       }  
     }
