@@ -84,10 +84,11 @@ module TransformResults
           'classname' => className
         })
         
+        message = currTest.message.gsub("\\n", "\n\n")
         if currTest.failed      
-          testcase.add_element('failure', { 'message' => currTests.message })
+          testcase.add_element('failure', { 'message' => message })
         elsif
-          testcase.add_element('pass',    { 'message' => currTests.message })
+          testcase.add_element('pass',    { 'message' => message })
         end
       }  
     }
