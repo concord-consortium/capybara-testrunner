@@ -38,6 +38,7 @@ module TransformResults
     currentModule = nil
     currentTest = nil
 
+    results ||= {}
     assertions = results['assertions'] ||= []
     
     assertions.each{|assertion|
