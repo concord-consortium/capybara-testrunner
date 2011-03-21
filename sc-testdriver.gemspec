@@ -12,6 +12,8 @@ spec = Gem::Specification.new do |spec|
   spec.add_dependency "selenium-client"
   spec.add_dependency "capybara"
   
+  spec.add_development_dependency "rspec"
+  
   spec.files          = `git ls-files`.split("\n")
   spec.test_files     = `git ls-files -- {test,spec,features}/*`.split("\n")
 
