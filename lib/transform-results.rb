@@ -61,11 +61,11 @@ module TransformResults
   end
 
 
-  def self.fromQUnit(results, out)
+  def self.fromQUnit(results)
     modules = parseResults(results)
  
-    doc = Document.new();
-    testsuites = doc.add_element('testsuites')
+    jUnitXML = Document.new();
+    testsuites = jUnitXML.add_element('testsuites')
 
     modules.each{ |currModule|
       testsuite = testsuites.add_element('testsuite', {
@@ -93,9 +93,7 @@ module TransformResults
       }  
     }
 
-    pretty_formatter = Formatters::Pretty.new(2)
-    pretty_formatter.compact = true
-    pretty_formatter.write(doc, out)
+    jUnitXML
   end
   
   

@@ -7,6 +7,7 @@ require 'fileutils'
 require 'json'
 
 require 'transform-results'
+require 'results-writer'
 require 'yaml'
 
 # Process command-line options
@@ -84,7 +85,8 @@ testURLs = testFolders.collect{|folder|
 
 def save_results_xml(url, results)
   File.open(url[:results_file], 'w'){|file|
-    TransformResults.fromQUnit(results, file)
+    jUnitXML = TransformResults.fromQUnit(results)
+    ResultsWriter.write(jUnitXML, file)
   }
   #uncomment this to save results for quicker testing of the transform
   #puts results.to_yaml
