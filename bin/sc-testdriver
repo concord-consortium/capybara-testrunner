@@ -84,7 +84,7 @@ testURLs = testFolders.collect{|folder|
 
 def save_results_xml(url, results)
   File.open(url[:results_file], 'w'){|file|
-    TransformResults.transform(results, file)
+    TransformResults.fromQUnit(results, file)
   }
   #uncomment this to save results for quicker testing of the transform
   #puts results.to_yaml

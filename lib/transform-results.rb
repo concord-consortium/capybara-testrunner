@@ -61,7 +61,7 @@ module TransformResults
   end
 
 
-  def self.transform(results, out)
+  def self.fromQUnit(results, out)
     modules = parseResults(results)
  
     doc = Document.new();
@@ -96,6 +96,7 @@ module TransformResults
     pretty_formatter = Formatters::Pretty.new(2)
     pretty_formatter.compact = true
     pretty_formatter.write(doc, out)
-
   end
+  
+  
 end
