@@ -38,7 +38,9 @@ module TransformResults
     currentModule = nil
     currentTest = nil
 
-    results['assertions'].each{|assertion|
+    assertions = results['assertions'] ||= []
+    
+    assertions.each{|assertion|
       if currentModule.nil? or currentModule.name != assertion['module']
         currentModule = TestModule.new(assertion['module'])    
         modules.push(currentModule)
@@ -64,6 +66,10 @@ module TransformResults
   def self.fromQUnit(results)
     modules = parseResults(results)
  
+    if modules.empty? then
+      return nil
+    end
+    
     jUnitXML = Document.new();
     testsuites = jUnitXML.add_element('testsuites')
 
