@@ -124,12 +124,18 @@ module TransformResults
   end
   
   
-  def self.find_jasmine_specs(child, prefix, find_jasmine_specs)
+  def self.find_jasmine_specs(node, prefix, find_method=method(:find_jasmine_specs))
 
-    if child["type"] == "spec" then
-      return { child["id"].to_s => (prefix + child["name"]) }
+    if node["type"] == "spec" then
+      return { node["id"].to_s => (prefix + node["name"]) }
     end
     
+    if node["type"] == "suite" then
+      node["children"].each do |child|
+        find_method.call(child, prefix + node["name"] + ": ", find_method)
+      end
+    end
+
   end
   
 end

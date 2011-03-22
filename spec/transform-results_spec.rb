@@ -74,10 +74,30 @@ describe TransformResults do
         end
         
         it "should append the supplied prefix to the spec" do
-          TransformResults.find_jasmine_specs(spec, "--prefix--", nil).should == { "0" => "--prefix--spec" }
+          TransformResults.find_jasmine_specs(spec, "suite name: ", nil).should == { "0" => "suite name: spec" }
+        end
+        
+        it "should not call the supplied traversal method" do
+          method = double()
+          method.should_not_receive(:call)
+          TransformResults.find_jasmine_specs(spec, "", method)
+
         end
       end
     end
-
+    
+    describe "when passed a suite" do
+      let (:spec0) { { "id" => 0, "name" => "spec 0", "type" => "spec",  "children" => [] } }
+      let (:spec1) { { "id" => 1, "name" => "spec 1", "type" => "spec",  "children" => [] } }      
+      let (:suite) { { "id" => 0, "name" => "suite",  "type" => "suite", "children" => [spec0, spec1] } }
+    
+      it "should call the supplied traversal method for each child" do
+        method = double()
+        method.should_receive(:call).with(spec0, "suite: ", method)
+        method.should_receive(:call).with(spec1, "suite: ", method)
+        TransformResults.find_jasmine_specs(suite, "", method)
+      end
+    end
+    
   end
 end
