@@ -1,4 +1,5 @@
 require 'transform-results'
+require 'json'
 
 describe TransformResults do
 
@@ -13,8 +14,21 @@ describe TransformResults do
   end
   
   describe "#from_jasmine" do
-    subject { TransformResults.method("from_jasmine") }   
+    subject { TransformResults.method("from_jasmine") }
     it_should_behave_like "any transform method"
+    
+    let (:suites) {
+      JSON.parse(File.read(File.join(File.dirname(__FILE__), "data", "suites.json")))
+    }
+    
+    let (:results) {
+      JSON.parse(File.read(File.join(File.dirname(__FILE__), "data", "results.json")))
+    }
+    
+    specify { results["2"]["result"].should eq "failed" }
+    specify { results.length.should eq 64 }
+    specify { suites[0]["children"][0]["children"][0]["name"].should eq "When I mark the center cell" }
+    
   end
   
 end
