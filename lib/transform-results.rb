@@ -127,7 +127,7 @@ module TransformResults
   def self.find_jasmine_specs(child, prefix, find_jasmine_specs)
 
     if child["type"] == "spec" then
-      return { child["id"].to_s => child["name"] }
+      return { child["id"].to_s => (prefix + child["name"]) }
     end
     
   end

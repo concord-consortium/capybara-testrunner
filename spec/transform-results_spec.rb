@@ -72,6 +72,10 @@ describe TransformResults do
         it "should return an hash indexed by the spec id" do
           TransformResults.find_jasmine_specs(spec, "", nil).should == { "0" => "spec" }
         end
+        
+        it "should append the supplied prefix to the spec" do
+          TransformResults.find_jasmine_specs(spec, "--prefix--", nil).should == { "0" => "--prefix--spec" }
+        end
       end
     end
 
