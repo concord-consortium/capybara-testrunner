@@ -104,4 +104,8 @@ module TransformResults
   end
   
   
+  def self.fromJasmine(results)
+    nil
+  end
+  
 end

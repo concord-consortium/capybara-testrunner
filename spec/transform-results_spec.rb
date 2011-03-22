@@ -1,17 +1,20 @@
 require 'transform-results'
 
-require 'rexml/document'
-
 describe TransformResults do
-  describe "#fromQUnit" do
-    
-    it "should return nil if test results evalute to nil" do
-      TransformResults.fromQUnit(nil).should be_nil
-    end
-    
-    it "should return nil if there are no assertions" do
-      TransformResults.fromQUnit({}).should be_nil
-    end
-    
+
+  shared_examples_for "any transform method" do
+    specify { subject.call(nil).should be_nil }
+    specify { subject.call({}).should be_nil }
   end
+  
+  describe "#fromQUnit" do
+    subject { TransformResults.method('fromQUnit') }
+    it_should_behave_like "any transform method"
+  end
+  
+  describe "#fromJasmine" do
+    subject { TransformResults.method('fromJasmine') }   
+    it_should_behave_like "any transform method"
+  end
+  
 end
