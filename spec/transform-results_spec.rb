@@ -89,15 +89,36 @@ describe TransformResults do
     describe "when passed a suite" do
       let (:spec0) { { "id" => 0, "name" => "spec 0", "type" => "spec",  "children" => [] } }
       let (:spec1) { { "id" => 1, "name" => "spec 1", "type" => "spec",  "children" => [] } }      
-      let (:suite) { { "id" => 0, "name" => "suite",  "type" => "suite", "children" => [spec0, spec1] } }
+      let (:suite) { { "id" => 0, "name" => "suite 0",  "type" => "suite", "children" => [spec0, spec1] } }
     
-      it "should call the supplied traversal method for each child" do
+      it "should call the supplied find method for each child of the suite and supply a prefix" do
         method = double()
-        method.should_receive(:call).with(spec0, "suite: ", method)
-        method.should_receive(:call).with(spec1, "suite: ", method)
+        method.stub(:call).and_return({})
+        method.should_receive(:call).with(spec0, "suite 0: ", method)
+        method.should_receive(:call).with(spec1, "suite 0: ", method)
         TransformResults.find_jasmine_specs(suite, "", method)
       end
-    end
+      
+      it "should merge the results from each child of the suite" do 
+        class Transformer
+          def find_jasmine_specs(node, prefix, method)
+            @callcount = (@callcount || 0) + 1
+            if @callcount == 1 then 
+              { "0" => "spec 0" }
+            else 
+              { "1" => "spec 1", "2" => "spec 2"} 
+            end
+          end
+        end
+        method = Transformer.new.method(:find_jasmine_specs)
+        
+        find_results = TransformResults.find_jasmine_specs(suite, "", method)
+        find_results.should == { "0" => "spec 0", "1" => "spec 1", "2" => "spec 2" }
+      end
     
+      it "should produce appropriate results when called at the top level" do
+        TransformResults.find_jasmine_specs(suite).should == { "0" => "suite 0: spec 0", "1" => "suite 0: spec 1" }
+      end
+    end
   end
 end

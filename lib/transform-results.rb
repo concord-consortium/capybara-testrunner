@@ -124,18 +124,18 @@ module TransformResults
   end
   
   
-  def self.find_jasmine_specs(node, prefix, find_method=method(:find_jasmine_specs))
+  def self.find_jasmine_specs(node, prefix="", find_method=method(:find_jasmine_specs))
 
     if node["type"] == "spec" then
-      return { node["id"].to_s => (prefix + node["name"]) }
+      { node["id"].to_s => (prefix + node["name"]) }
+    elsif node["type"] == "suite" then
+      results = {}
+      node["children"].each do |child|
+        results.merge!(find_method.call(child, prefix + node["name"] + ": ", find_method))
+      end
+      results
     end
     
-    if node["type"] == "suite" then
-      node["children"].each do |child|
-        find_method.call(child, prefix + node["name"] + ": ", find_method)
-      end
-    end
-
   end
   
 end
