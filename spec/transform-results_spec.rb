@@ -13,15 +13,13 @@ describe TransformResults do
   
   describe "#from_jasmine" do
     
-    describe "when it is passed nil or arguments with no items" do  
+    describe "when it is passed nil arguments or arguments with no items" do
       it "should return nil" do
         TransformResults.from_jasmine(nil, nil).should be_nil
-        TransformResults.from_jasmine(nil, {}).should be_nil
         TransformResults.from_jasmine({}, nil).should be_nil
-        TransformResults.from_jasmine({}, {}).should be_nil
-        TransformResults.from_jasmine(nil, []).should be_nil
         TransformResults.from_jasmine([], nil).should be_nil
-        TransformResults.from_jasmine([], []).should be_nil
+        TransformResults.from_jasmine(nil, {}).should be_nil
+        TransformResults.from_jasmine(nil, []).should be_nil
       end
     end
     
