@@ -3,11 +3,6 @@ require 'json'
 require 'rexml/document'
 
 describe TransformResults do
-
-  # shared_examples_for "any transform method" do
-  #   specify { subject.call(nil).should be_nil }
-  #   specify { subject.call({}).should be_nil }
-  # end
   
   describe "#from_qunit" do
     it "should return nil if passed nil or arguments with no assertions" do
@@ -17,30 +12,46 @@ describe TransformResults do
   end
   
   describe "#from_jasmine" do
-    it "should return nil if passed nil or arguments with no assertions" do
-      TransformResults.from_jasmine(nil, nil).should be_nil
-      TransformResults.from_jasmine(nil, {}).should be_nil
-      TransformResults.from_jasmine({}, nil).should be_nil
-      TransformResults.from_jasmine({}, {}).should be_nil
+    
+    describe "when it is passed nil or arguments with no items" do  
+      it "should return nil" do
+        TransformResults.from_jasmine(nil, nil).should be_nil
+        TransformResults.from_jasmine(nil, {}).should be_nil
+        TransformResults.from_jasmine({}, nil).should be_nil
+        TransformResults.from_jasmine({}, {}).should be_nil
+        TransformResults.from_jasmine(nil, []).should be_nil
+        TransformResults.from_jasmine([], nil).should be_nil
+        TransformResults.from_jasmine([], []).should be_nil
+      end
     end
     
-    let (:suites) {
-      JSON.parse(File.read(File.join(File.dirname(__FILE__), "data", "suites.json")))
-    }
-    
-    specify { suites[0]["children"][0]["children"][0]["name"].should eq "When I mark the center cell" }
+    describe "when it is passed valid data" do
+      
+      before(:all) do
+        datadir = File.join(File.dirname(__FILE__), "data")
+        @suites  = JSON.parse(File.read(File.join(datadir, "suites.json")))
+        @results = JSON.parse(File.read(File.join(datadir, "results.json")))
+      end
+      
+      describe "which meet JSON preconditions" do
+        specify { @suites[0]["children"][0]["children"][0]["name"].should eq "When I mark the center cell" }
+        specify { @results["2"]["result"].should eq "failed" }
+        specify { @results.length.should eq 64 }
+      end
+      
+      describe "the document it returns" do
+        let (:doc) { TransformResults.from_jasmine(@suites, @results) }
 
-    let (:results) {
-      JSON.parse(File.read(File.join(File.dirname(__FILE__), "data", "results.json")))
-    }
+        it "should be an XML document" do
+          doc.should be_a REXML::Document
+        end
     
-    specify { results["2"]["result"].should eq "failed" }
-    specify { results.length.should eq 64 }
-    
-    it "should return an XML document" do
-      TransformResults.from_jasmine(suites, results).should be_a REXML::Document
+        it "should have a toplevel <testsuites> element" do
+          doc.elements[1].name.should eq "testsuites"
+        end
+        
+      end
     end
-    
   end
-  
+
 end
