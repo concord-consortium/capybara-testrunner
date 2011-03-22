@@ -90,40 +90,40 @@ describe TransformResults do
       let (:spec1) { { "id" => 1, "name" => "spec 1", "type" => "spec",  "children" => [] } }      
       let (:suite) { { "id" => 0, "name" => "suite 0",  "type" => "suite", "children" => [spec0, spec1] } }
     
-      it "should call the supplied find method for each child of the suite and supply a prefix" do
-        method = double()
-        method.stub(:call).and_return({})
-        method.should_receive(:call).with(spec0, "suite 0: ", method)
-        method.should_receive(:call).with(spec1, "suite 0: ", method)
-        TransformResults.find_jasmine_specs(suite, "", method)
+      describe "for each child" do
+        it "should call the supplied find method and supply the suite name as the prefix" do
+          method = double()
+          method.stub(:call).and_return({})
+          method.should_receive(:call).with(spec0, "suite 0: ", method)
+          method.should_receive(:call).with(spec1, "suite 0: ", method)
+          TransformResults.find_jasmine_specs(suite, "", method)
+        end
       end
       
       it "should merge the results from each child of the suite" do 
-        class Transformer
+        class TransformResultsMock
           def find_jasmine_specs(node, prefix, method)
             @callcount = (@callcount || 0) + 1
-            if @callcount == 1 then 
-              { "0" => "spec 0" }
-            else 
-              { "1" => "spec 1", "2" => "spec 2"} 
-            end
+            @callcount == 1 ? { "0" => "spec 0" } : { "1" => "spec 1", "2" => "spec 2"}
           end
         end
-        method = Transformer.new.method(:find_jasmine_specs)
+        method = TransformResultsMock.new.method(:find_jasmine_specs)
         
         find_results = TransformResults.find_jasmine_specs(suite, "", method)
         find_results.should == { "0" => "spec 0", "1" => "spec 1", "2" => "spec 2" }
       end
-    
-      it "should produce appropriate results when called at the top level" do
-        spec2 = { "id" => 2, "name" => "spec 2", "type" => "spec",  "children" => [] }
-        outer_suite = { "id" => 1, "name" => "suite 1",  "type" => "suite", "children" => [suite, spec2] }
+      
+      describe "when suites and specs are nested at different levels" do
+        let (:spec2)       { { "id" => 2, "name" => "spec 2",  "type" => "spec",  "children" => [] } }
+        let (:outer_suite) { { "id" => 1, "name" => "suite 1", "type" => "suite", "children" => [suite, spec2] } }
         
-        TransformResults.find_jasmine_specs(outer_suite).should == { 
-          "0" => "suite 1: suite 0: spec 0", 
-          "1" => "suite 1: suite 0: spec 1",
-          "2" => "suite 1: spec 2"
-        }
+        it "should produce merged results with appropriate prefixes" do
+          TransformResults.find_jasmine_specs(outer_suite).should == { 
+            "0" => "suite 1: suite 0: spec 0", 
+            "1" => "suite 1: suite 0: spec 1",
+            "2" => "suite 1: spec 2"
+          }
+        end
       end
     end
   end
