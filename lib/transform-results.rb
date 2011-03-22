@@ -114,7 +114,11 @@ module TransformResults
     end
     
     jUnitXML = Document.new();
-    testsuites = jUnitXML.add_element('testsuites')    
+    testsuites_element = jUnitXML.add_element("testsuites")    
+    
+    suites.each do |suite|
+      testsuite_element = testsuites_element.add_element("testsuite")
+    end
     
     jUnitXML
   end

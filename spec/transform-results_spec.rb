@@ -46,11 +46,25 @@ describe TransformResults do
           doc.should be_a REXML::Document
         end
     
-        it "should have a toplevel <testsuites> element" do
-          doc.elements[1].name.should eq "testsuites"
-        end
+        describe "the toplevel element of that document" do
+          let (:toplevel) { doc.elements[1] }
+
+          it "should be a <testsuites> element" do
+            toplevel.name.should eq "testsuites"
+          end
         
+          it "should have only <testsuite> children" do
+            toplevel.elements.each do |element|
+              element.name.should eq "testsuite"
+            end
+          end
+          
+          it "should have one child per toplevel suite in the JSON" do
+            toplevel.elements.size.should eq @suites.length
+          end
+        end
       end
+      
     end
   end
 
