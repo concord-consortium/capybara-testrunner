@@ -81,7 +81,6 @@ describe TransformResults do
           method = double()
           method.should_not_receive(:call)
           TransformResults.find_jasmine_specs(spec, "", method)
-
         end
       end
     end
@@ -117,7 +116,14 @@ describe TransformResults do
       end
     
       it "should produce appropriate results when called at the top level" do
-        TransformResults.find_jasmine_specs(suite).should == { "0" => "suite 0: spec 0", "1" => "suite 0: spec 1" }
+        spec2 = { "id" => 2, "name" => "spec 2", "type" => "spec",  "children" => [] }
+        outer_suite = { "id" => 1, "name" => "suite 1",  "type" => "suite", "children" => [suite, spec2] }
+        
+        TransformResults.find_jasmine_specs(outer_suite).should == { 
+          "0" => "suite 1: suite 0: spec 0", 
+          "1" => "suite 1: suite 0: spec 1",
+          "2" => "suite 1: spec 2"
+        }
       end
     end
   end
