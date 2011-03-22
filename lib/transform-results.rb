@@ -104,7 +104,7 @@ module TransformResults
   end
   
   
-  def self.from_jasmine(results)
+  def self.from_jasmine(suites, results)
     nil
   end
   
