@@ -57,7 +57,7 @@ describe TransformResults do
             end
           end
           
-          it "should have one child per toplevel suite in the JSON" do
+          it "should have one child per spec in the JSON" do
             toplevel.elements.size.should eq @suites.length
           end
         end
