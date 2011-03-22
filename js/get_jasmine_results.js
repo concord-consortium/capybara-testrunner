@@ -21,7 +21,7 @@
       for (i = 0; i < specResults[specId].messages.length; i++) {
         expectation = specResults[specId].messages[i];
         filteredVal.messages.push({
-          passed: expectation.passed_, 
+          passed:  expectation.passed_, 
           message: expectation.message
         });
       }
