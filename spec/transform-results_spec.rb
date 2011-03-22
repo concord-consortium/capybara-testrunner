@@ -62,8 +62,18 @@ describe TransformResults do
           end
         end
       end
-      
     end
-  end
+       
+    describe "#find_jasmine_specs" do
+      
+      describe "when passed a spec" do
+        let (:spec) { { "id" => 0, "name" => "spec", "type" => "spec", "children" => [] } }
+        
+        it "should return an hash indexed by the spec id" do
+          TransformResults.find_jasmine_specs(spec, "", nil).should == { "0" => "spec" }
+        end
+      end
+    end
 
+  end
 end
