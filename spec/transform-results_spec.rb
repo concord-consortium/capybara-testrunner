@@ -7,13 +7,13 @@ describe TransformResults do
     specify { subject.call({}).should be_nil }
   end
   
-  describe "#fromQUnit" do
-    subject { TransformResults.method('fromQUnit') }
+  describe "#from_qunit" do
+    subject { TransformResults.method("from_qunit") }
     it_should_behave_like "any transform method"
   end
   
-  describe "#fromJasmine" do
-    subject { TransformResults.method('fromJasmine') }   
+  describe "#from_jasmine" do
+    subject { TransformResults.method("from_jasmine") }   
     it_should_behave_like "any transform method"
   end
   

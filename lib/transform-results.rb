@@ -64,7 +64,7 @@ module TransformResults
   end
 
 
-  def self.fromQUnit(results)
+  def self.from_qunit(results)
     modules = parseResults(results)
  
     if modules.empty? then
@@ -104,7 +104,7 @@ module TransformResults
   end
   
   
-  def self.fromJasmine(results)
+  def self.from_jasmine(results)
     nil
   end
   
