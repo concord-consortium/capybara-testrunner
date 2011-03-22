@@ -105,7 +105,17 @@ module TransformResults
   
   
   def self.from_jasmine(suites, results)
-    nil
+    if suites.nil? or suites.length == 0 then
+      return nil
+    end
+    
+    if results.nil? or results.length == 0 then
+      return nil
+    end
+    
+    jUnitXML = Document.new();
+    
+    jUnitXML
   end
   
 end

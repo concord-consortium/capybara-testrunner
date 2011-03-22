@@ -37,6 +37,10 @@ describe TransformResults do
     specify { results["2"]["result"].should eq "failed" }
     specify { results.length.should eq 64 }
     
+    it "should return an XML document" do
+      TransformResults.from_jasmine(suites, results).should be_a REXML::Document
+    end
+    
   end
   
 end
