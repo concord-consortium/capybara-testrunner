@@ -71,32 +71,39 @@ describe TransformResults do
     let (:spec1) { { "id" => 1, "name" => "spec 1", "type" => "spec",  "children" => [] } }      
     let (:suite) { { "id" => 0, "name" => "suite 0",  "type" => "suite", "children" => [spec0, spec1] } }
 
-    describe "#find_jasmine_specs" do
+    describe "#find_jasmine_specs_in" do
            
       describe "when passed a spec" do
         it "should return an hash indexed by the spec id" do
-          TransformResults.find_jasmine_specs(spec0, "").should == { "0" => "spec 0" }
+          TransformResults.find_jasmine_specs_in(spec0, "").should == { "0" => "spec 0" }
         end
       
         it "should append the supplied prefix to the spec" do
-          TransformResults.find_jasmine_specs(spec0, "suite name: ").should == { "0" => "suite name: spec 0" }
+          TransformResults.find_jasmine_specs_in(spec0, "suite name: ").should == { "0" => "suite name: spec 0" }
         end
       end
   
       describe "when passed a suite" do
-        it "should return the value of #merge_jasmine_specs" do
-          TransformResults.stub(:merge_jasmine_specs).and_return(:stubbed_value)
-          TransformResults.find_jasmine_specs(suite, "prefix: ").should == :stubbed_value
+        it "should return the value of #merge_jasmine_specs_from" do
+          TransformResults.stub(:merge_jasmine_specs_from).and_return(:stubbed_value)
+          TransformResults.find_jasmine_specs_in(suite, "prefix: ").should == :stubbed_value
         end
         
-        it "should pass the list of the suite's children to #merge_jasmine_specs" do
+        it "should pass the list of the suite's children to #merge_jasmine_specs_from" do
           args = {}
-          TransformResults.stub(:merge_jasmine_specs) do |nodes, prefix|
+          TransformResults.stub(:merge_jasmine_specs_from) do |nodes, prefix|
             args["nodes"] = nodes
+          end
+          TransformResults.find_jasmine_specs_in(suite, "prefix: ")
+          args["nodes"].should == suite["children"]
+        end
+        
+        it "should append the suite's name to the prefix passed to #merge_jasmine_specs_from" do
+          args = {}
+          TransformResults.stub(:merge_jasmine_specs_from) do |nodes, prefix|
             args["prefix"] = prefix
           end
-          TransformResults.find_jasmine_specs(suite, "prefix: ")
-          args["nodes"].should == suite["children"]
+          TransformResults.find_jasmine_specs_in(suite, "prefix: ")
           args["prefix"].should == "prefix: suite 0: "
         end
       end
@@ -106,7 +113,7 @@ describe TransformResults do
         let (:outer_suite) { { "id" => 1, "name" => "suite 1", "type" => "suite", "children" => [suite, spec2] } }
   
         it "should produce merged results with appropriate prefixes" do
-          TransformResults.find_jasmine_specs(outer_suite).should == { 
+          TransformResults.find_jasmine_specs_in(outer_suite).should == { 
             "0" => "suite 1: suite 0: spec 0", 
             "1" => "suite 1: suite 0: spec 1",
             "2" => "suite 1: spec 2"
@@ -116,33 +123,33 @@ describe TransformResults do
     end  
     
     
-    describe "#merge_jasmine_specs" do
+    describe "#merge_jasmine_specs_from" do
 
       describe "for each child" do
-        it "should call the #find_jasmine_specs method" do
+        it "should call the #find_jasmine_specs_in method" do
           nodes = []
           prefixes = []
-          TransformResults.stub(:find_jasmine_specs) do |node, prefix|
+          TransformResults.stub(:find_jasmine_specs_in) do |node, prefix|
             nodes.push(node)
             prefixes.push(prefix)
             {}
           end
           
-          TransformResults.merge_jasmine_specs([spec0, spec1], "prefix")
+          TransformResults.merge_jasmine_specs_from([spec0, spec1], "prefix")
           nodes.should == [spec0, spec1]
           prefixes.should == ["prefix", "prefix"]
         end
       end
     
-      it "should merge the results from each call to #find_jasmine_specs" do 
+      it "should merge the results from each call to #find_jasmine_specs_in" do 
         call_count = 0
         
-        TransformResults.stub(:find_jasmine_specs) do
+        TransformResults.stub(:find_jasmine_specs_in) do
           call_count += 1
           call_count == 1 ? { "0" => "spec 0" } : { "1" => "spec 1", "2" => "spec 2"}
         end
         
-        find_results = TransformResults.merge_jasmine_specs([spec0, spec1], "")
+        find_results = TransformResults.merge_jasmine_specs_from([spec0, spec1], "")
         find_results.should == { "0" => "spec 0", "1" => "spec 1", "2" => "spec 2" }
       end
     end
