@@ -104,20 +104,36 @@ module TransformResults
   end
   
   
-  def self.from_jasmine(suites, results)
-    if suites.nil? or suites.length == 0 then
-      return nil
-    end
-    
-    if results.nil? or results.length == 0 then
+  def self.from_jasmine(results)
+    if results.nil? or results == [] or results['suites'].nil? or results['suites'].length == 0 then
       return nil
     end
     
     jUnitXML = Document.new();
     testsuites_element = jUnitXML.add_element("testsuites")    
     
-    suites.each do |suite|
-      testsuite_element = testsuites_element.add_element("testsuite")
+    results['suites'].each do |suite|
+      results = suite['results']
+      passed = results.select{|r| r['status'] == "passed" }
+      failures = (results-passed).select{|r| r['status'] == "failed" }
+      errors = results-(passed+failures)
+
+      testsuite_element = testsuites_element.add_element("testsuite", {'name' => suite['name'], 'tests' => results.size, 'failures' => failures.size, 'errors' => errors.size})
+
+      results.each do |result|
+        testcase_element = testsuite_element.add_element("testcase", {'name' => result['name']})
+
+        # TODO We should add the combined results of all the assertions
+        # to the pass or failure messages
+        case result['status']
+        when "passed"
+          testcase_element.add_element("pass", {'message' => 'passed'})
+        when "failed"
+          testcase_element.add_element("failure", {'message' => 'failed'})
+        else
+          testcase_element.add_element("failure", {'message' => 'unknown status: ' + result['status']})
+        end
+      end
     end
     
     jUnitXML

@@ -59,6 +59,8 @@ when "sauce" then
   SauceRunner.new(@app_host, File.dirname(__FILE__), @options[:tunnel])
 end
 
+@jasmine_results_script = File.read(File.join(File.dirname(__FILE__), '..', 'js', 'get_jasmine_results.js'))
+
 # find all of the test subfolders in the tests of the current apps
 # FIXME should change to support nested folders inside of tests
 testFolders = Dir.glob( File.join(@options[:root_dir], @options[:tests_dir], "**", "tests", "*") )
@@ -83,10 +85,16 @@ testURLs = testFolders.collect{|folder|
   }
 }
 
-def save_results_xml(url, results)
+def save_results_xml(url, results, results_type)
   File.open(url[:results_file], 'w'){|file|
-    jUnitXML = TransformResults.from_qunit(results)
-    ResultsWriter.write(jUnitXML, file)
+    jUnitXML = nil
+    case results_type
+    when :qunit
+      jUnitXML = TransformResults.from_qunit(results)
+    when :jasmine
+      jUnitXML = TransformResults.from_jasmine(results)
+    end
+    ResultsWriter.write(jUnitXML, file) unless jUnitXML.nil?
   }
   #uncomment this to save results for quicker testing of the transform
   #puts results.to_yaml
@@ -106,6 +114,17 @@ def save_page_html(file_path)
   }
 end
 
+def wait_for_results(start, results_cmd, finished_property)
+  results = nil
+  while Time.now < (start + 300)
+    results = @browser.js_eval(results_cmd)
+    print "."
+    break if results[finished_property]
+    sleep 0.2
+  end
+  return results
+end
+
 testURLs.each{|url|
   print "visiting #{url[:url]}..." unless @options[:quiet]
   @browser.open(url[:url])
@@ -113,14 +132,16 @@ testURLs.each{|url|
   print "waiting for tests to finish"
   start = Time.now
   results = nil
-  while Time.now < (start + 300)
-    results = @browser.js_eval('CoreTest.plan.results')
-    print "."
-    break unless results['finish'].nil?
-    sleep 0.2
+  results_type = :qunit
+  begin
+    results = wait_for_results(start, 'CoreTest.plan.results', 'finish')
+  rescue Selenium::WebDriver::Error::UnexpectedJavascriptError
+    results_type = :jasmine
+    results = wait_for_results(start, @jasmine_results_script, 'finished')
   end
+
   puts "(#{Time.now - start} seconds)"
-  save_results_xml(url, results) if @options[:junit]
+  save_results_xml(url, results, results_type) if @options[:junit]
   save_page_png(url[:results_png_file]) if @options[:image]
   save_page_html(url[:results_html_file]) if @options[:html]
 }
