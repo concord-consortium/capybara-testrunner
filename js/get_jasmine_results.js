@@ -16,9 +16,11 @@
     suiteName = suiteName.slice(0,-1);  // trim off the final period
     tempSuites[suiteName] = (tempSuites[suiteName] || { name: suiteName, results: [] });
 
+    // sometimes there isn't a result for an id??
+    var status = (specResults[spec.id] ? specResults[spec.id].result : "unknown");
     specResult = {
       name: spec.name,
-      status: specResults[spec.id].result
+      status: status
     };
     tempSuites[suiteName].results.push(specResult);
   }
