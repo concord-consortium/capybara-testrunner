@@ -115,10 +115,11 @@ module TransformResults
     results['suites'].each do |suite|
       results = suite['results']
       passed = results.select{|r| r['status'] == "passed" }
+      skipped = results.select{|r| r['status'] == "skipped" }
       failures = (results-passed).select{|r| r['status'] == "failed" }
-      errors = results-(passed+failures)
+      errors = results-(passed+failures+skipped)
 
-      testsuite_element = testsuites_element.add_element("testsuite", {'name' => suite['name'], 'tests' => results.size, 'failures' => failures.size, 'errors' => errors.size})
+      testsuite_element = testsuites_element.add_element("testsuite", {'name' => suite['name'], 'tests' => results.size, 'failures' => failures.size, 'errors' => errors.size, 'skipped' => skipped.size})
 
       results.each do |result|
         testcase_element = testsuite_element.add_element("testcase", {'name' => result['name']})
@@ -130,6 +131,8 @@ module TransformResults
           testcase_element.add_element("pass", {'message' => 'passed'})
         when "failed"
           testcase_element.add_element("failure", {'message' => 'failed'})
+        when "skipped"
+          testcase_element.add_element("skipped", {'message' => 'skipped'})
         else
           testcase_element.add_element("failure", {'message' => 'unknown status: ' + result['status']})
         end
