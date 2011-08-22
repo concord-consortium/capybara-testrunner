@@ -130,7 +130,7 @@ module TransformResults
         when "passed"
           testcase_element.add_element("pass", {'message' => 'passed'})
         when "failed"
-          testcase_element.add_element("failure", {'message' => 'failed'})
+          testcase_element.add_element("failure", {'message' => result['messages'].join("\n\n") })
         when "skipped"
           testcase_element.add_element("skipped", {'message' => 'skipped'})
         else

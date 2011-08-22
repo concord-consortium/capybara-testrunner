@@ -25,8 +25,16 @@
     }
     specResult = {
       name: spec.name,
-      status: status
+      status: status,
+      messages: []
     };
+    // collect all the messages
+    if (status != 'passed' && status != 'skipped' && messages.length > 0) {
+      specResult['messages'] = messages.map(function(message) {
+        // collect a string representation of the result message.
+        return message.message;
+      });
+    }
     tempSuites[suiteName].results.push(specResult);
   }
 
