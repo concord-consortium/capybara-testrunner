@@ -18,7 +18,7 @@
 
     // sometimes there isn't a result for an id??
     var status = (specResults[spec.id] ? specResults[spec.id].result : "unknown");
-    var messages = specResults[spec.id].messages;
+    var messages = (specResults[spec.id] ? specResults[spec.id].messages : []);
     if (status == "passed" && messages.length == 0) {
       // this was skipped
       status = "skipped";
