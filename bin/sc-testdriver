@@ -16,24 +16,24 @@ require 'yaml'
 
   # capybara specific
   opt :driver, "Capybara driver", :short => 'd', :type => String, :default => "selenium"
-  
+
   # sauce labs specific
   opt :tunnel, "Start Sauce Connect Tunnel", :short => 'c', :default => false
-  
-  # look for an environment variable so the port can be changed depending on 
+
+  # look for an environment variable so the port can be changed depending on
   # the ci node that is running it
   opt :sc_server_port, "SC Server Port", :short => 'p', :type => :int, :default => (ENV['SC_SERVER_PORT'] || '4020').to_i
   opt :sc_server_host, "SC Server Host", :short => 's', :type => :string, :default => "localhost"
-  
+
   opt :root_dir, "Root directory", :short => 'r', :type => :string, :default => ".."
   opt :tests_dir, "Tests directory", :short => 't', :type => :string, :default => "{apps,frameworks}"
   opt :exclude_dir, "Exclude test directory", :short => 'x', :type => :string, :multi => true
-  
+
   opt :results_dir, "Results directory", :short => 'o', :type => :string, :default => "results"
   opt :junit, "Output JUnit XML", :short => 'j', :default => true
   opt :image, 'Save a png snapshot of the test page', :short => 'i', :default => false
   opt :html, 'Save an html snapshot of the test page', :short => 'h', :default => false
-  
+
   opt :quiet, 'Quiet mode. Do not print messages while running', :short => 'q', :default => false
 end
 
@@ -48,14 +48,14 @@ FileUtils.mkdir_p @options[:results_dir]
 
 @app_host = "http://#{@options[:sc_server_host]}:#{@options[:sc_server_port]}"
 @browser = case @options[:runner]
-when "capybara" then 
+when "capybara" then
   require 'capybara-runner'
   CapybaraRunner.new(@options[:driver].to_sym, @app_host)
 when "selenium-rc" then
   require 'selenium-rc-runner'
   SeleniumRCRunner.new(@app_host, 'localhost', '*safari')
 when "sauce" then
-  require 'sauce-runner'  
+  require 'sauce-runner'
   SauceRunner.new(@app_host, File.dirname(__FILE__), @options[:tunnel])
 end
 
