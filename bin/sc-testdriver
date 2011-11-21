@@ -61,32 +61,68 @@ end
 
 @jasmine_results_script = File.read(File.join(File.dirname(__FILE__), '..', 'js', 'get_jasmine_results.js'))
 
-# find all of the test subfolders in the tests of the current apps
-# FIXME should change to support nested folders inside of tests
-testFolders = Dir.glob( File.join(@options[:root_dir], @options[:tests_dir], "**", "tests", "*") )
+# Find all subfolders, of folders named /tests/ under @options[:root_dir]/@options[:tests_dir], which contain
+# actual javascript files. Exclude folders in tmp/** and @options[:exclude_dir]. FIXME: untested.
 
-excludes = [File.join("tmp","**")] + @options[:exclude_dir]
-testFolders = testFolders.reject{|folder|
-  excludes.any?{|exclude| File.fnmatch?(File.join(@options[:root_dir], exclude), folder)}
+excludes   = @options[:exclude_dir] + [File.join("tmp","**")]
+test_paths = Dir.glob File.join(@options[:root_dir], @options[:tests_dir], "**", "tests", "**", "*.js")
+test_paths.reject! { |test_path|
+  excludes.any? { |exclude| File.fnmatch? File.join(@options[:root_dir], exclude), test_path }
 }
+test_folders = test_paths.map { |test_path| File.split(test_path)[0] }.uniq
 
-TEST_REGEXP = Regexp.new('.*?(frameworks|apps)/(.*)/tests/(.*)')
-testURLs = testFolders.collect{|folder|
+results_dir = @options[:results_dir]
+
+# captured group 'stripped_path' strips everything up to and including leftmost instance of 'apps/' or 'frameworks/'
+STRIP_RE = %r{
+
+  (?<stripped_path> .* ){0}
+
+  ^.*?frameworks/\g<stripped_path>$|.*?apps/\g<stripped_path>$
+}x
+
+SPLIT_RE = %r{
+
+  (?<url_base>               .*? ){0}
+  (?<optional_trailing_path> /[^/]+ ){0}
+  (?<path_to_test>           tests\g<optional_trailing_path>* ){0}
+
+  ^\g<url_base>/\g<path_to_test>$
+}x
+
+testURLs = test_folders.map { |folder|
   puts "will gather tests from folder #{folder}" unless @options[:quiet]
-  # switch to url slashes
-  folder.gsub!(File::SEPARATOR, '/')
-  paths = TEST_REGEXP.match(folder)
-  url_base = paths[2].gsub('frameworks/','')
-  file_base = paths[3].gsub(/\.js$/, '') # remove .js if the entry is a js file instead of directory
-  {:url => "/#{url_base}/en/current/tests/#{file_base}.html",
-   :results_file => File.join(@options[:results_dir], "#{url_base}-#{file_base}-junit.xml".gsub('/',"-")),
-   :results_html_file => File.join(@options[:results_dir], "#{url_base}-#{file_base}-page.html".gsub('/',"-")),
-   :results_png_file => File.join(@options[:results_dir], "#{url_base}-#{file_base}-page.png".gsub('/',"-"))
+
+  path = folder.gsub!(File::SEPARATOR, '/')
+
+  m = STRIP_RE.match path
+  if m.nil? then
+    puts "Can't find either apps/ or frameworks/ in path #{folder}"
+    next
+  end
+  path = m['stripped_path']
+
+  path.gsub! 'apps/', ''
+  path.gsub! 'frameworks/', ''
+
+  m = SPLIT_RE.match path
+  if m.nil? then
+    puts "Can't find tests/ in path #{folder}"
+    next
+  end
+
+  url_base     = m['url_base']
+  path_to_test = m['path_to_test']
+
+  { :url               => "/static/#{url_base}/en/current/#{path_to_test}.html",
+    :results_file      => File.join( results_dir, "#{url_base}-#{path_to_test}-junit.xml".gsub('/', '-') ),
+    :results_html_file => File.join( results_dir, "#{url_base}-#{path_to_test}-page.html".gsub('/', '-') ),
+    :results_png_file  => File.join( results_dir, "#{url_base}-#{path_to_test}-page.png".gsub('/', '-') ),
   }
 }
 
 def save_results_xml(url, results, results_type)
-  File.open(url[:results_file], 'w'){|file|
+  File.open(url[:results_file], 'w') do |file|
     jUnitXML = nil
     case results_type
     when :qunit
@@ -95,7 +131,7 @@ def save_results_xml(url, results, results_type)
       jUnitXML = TransformResults.from_jasmine(results)
     end
     ResultsWriter.write(jUnitXML, file) unless jUnitXML.nil?
-  }
+  end
   #uncomment this to save results for quicker testing of the transform
   #puts results.to_yaml
 end
@@ -108,10 +144,10 @@ def save_page_html(file_path)
   # FIXME How do we get the result html without re-running the tests?
   # one method: get the current DOM and any script elements. this is possibly too aggressive
   html = @browser.body.gsub(/<script.*?<\/script>/m, '')
-  File.open(file_path, 'w'){|file|
-    file.write(html)
+  File.open(file_path, 'w') do |file|
+    file.write html
     file.flush
-  }
+  end
 end
 
 def wait_for_results(start, results_cmd, finished_property)
